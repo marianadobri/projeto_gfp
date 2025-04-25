@@ -119,16 +119,41 @@ static async atualizarTodos(req,res){ //CERTOO
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //deletar 
-static async deletar(req, res) {  
+static async deletar(req, res) {  //CERTO
     const { id_categoria } =req.params;
     try{
-        const categoria = await BD.query('UPDATE categoria set ativo = false WHERE id_usuario = $1', [id_categoria])
+        const categoria = await BD.query('UPDATE categorias set ativo = false WHERE id_usuario = $1', [id_categoria])
         return res.status(200).json({message: "Categoria desativado com sucesso"})
     }catch(error){
         res.status(500).json({message: "Erro ao desativar categoria", error: error.message})
     }
 }
 
+    //filtrar por tipo categoria
+    static async filtrarCategoria (req, res){
+        //o valor sera enviado por parametro na url, deve ser enviado dessa maneira
+        // ?tipo_transacao=entrada
+        const {tipo_transacao} = req.query;
+
+        try{
+            const filtros = [];
+            const valores = [];
+
+            if(tipo_transacao){
+                filtros.push(`tipo_transacao = $${valores.length + 1}`);
+                valores.push(tipo_transacao);
+            }
+            const query = `
+            SELECT * FROM categorias
+            ${filtros.length ? `WHERE ${filtros.join (" AND ")}` : ""}
+            ORDER BY id_categoria DESC
+            `
+
+            const resultado = await BD.query(query, valores)
+        }catch(error){
+
+        }
+    }
 }
 
 

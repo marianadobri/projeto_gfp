@@ -1,5 +1,8 @@
 import { BD } from '../db.js'
 import bcrypt from 'bcrypt'
+import jwt from'jsonwebtoken'
+
+const SECRET_KEY = "chave_api_gfp"
 
 class rotasUsuarios{
     static async novoUsuario(req, res){ //CERTO
@@ -19,17 +22,19 @@ class rotasUsuarios{
             res.status(500).json({message: 'Erro ao criar', error: error.message})
         }
     }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //consulta por id
     static async listarUsuariosPorID(req, res) {  //CERTO
         const { id_usuario } = req.params;
         
         try{
             const usuario = await BD.query('SELECT * FROM usuarios WHERE id_usuario = $1', [id_usuario]);
-            res.status(200).json(usuario);
+            res.status(200).json(usuario.rows);
         }catch(error){
             res.status(500).json({message: "Erro ao consultar o usuario", error: error.message});
         }
     }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         //função para listar (GET) todos os usuarios
         static async listarUsuarios(req,res){  //CERTO
             try{
@@ -40,7 +45,7 @@ class rotasUsuarios{
             }
         }
     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
         //deletar 
         static async deletar(req, res) {  //CERTOOO
             const { id_usuario } =req.params;
@@ -53,7 +58,7 @@ class rotasUsuarios{
         }
     
     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
         //função atualizar
         static async atualizarTodos(req,res){
@@ -70,7 +75,7 @@ class rotasUsuarios{
             }
         }
     
-    
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   
         //função atualizar os valores individualmente caso necessario
         static async atualizar(req, res){ //CERTO
             const {id_usuario} = req.params;
@@ -127,15 +132,14 @@ class rotasUsuarios{
                 res.status(500).json({message: "Erro ao atualizar o usuário", error: error.message})
             }
         }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         static async login(req, res){ //CERTO
             const {email, senha} = req.body;
             
             try{
                 const resultado = await BD.query(
-                    `SELECT id_usuario, nome, email, senha, tipo_acesso
-                    FROM usuarios
-                    WHERE email = $1`,
+                    `SELECT * FROM usuarios 
+                     WHERE email = $1 and ativo = true`,
                     [email]
                 );
                 if(resultado.rows.length === 0){
@@ -145,24 +149,53 @@ class rotasUsuarios{
                 const senhaValida = await bcrypt.compare(senha, usuario.senha)
     
                 if(!senhaValida){
-                    return res.status(401).json('Email ou senha inválidos')
+                    return res.status(401).json('Senha incorreta')
                 }
                 //Gerar um novo token para o usuario
-                // const token = jwt.sign(
-                //     //payload
-                //     {id: usuario.id_usuario, nome: usuario.nome, email: usuario.email, senha: usuario.senha, acesso: usuario.tipo_acesso},
-                //     //signature
-                //     SECRET_KEY,
-                //     {expiresIn: '1h'}
-                // )
-                return res.status(200).json({message: 'Login realizado com sucesso'})
-                // return res.status(200).json({message: 'Login realizado com sucesso', usuario})
+                const token = jwt.sign(
+                    //payload
+                    {id: usuario.id_usuario, nome: usuario.nome, email: usuario.email},
+                    //signature
+                    SECRET_KEY,
+                    // {expiresIn: '1h'}
+                )
+                return res.status(200).json({token, 
+                    id_usuario: usuario.id_usuario, 
+                    nome: usuario.nome, 
+                    email: usuario.email, 
+                    tipo_acesso: usuario.tipo_acesso})
             }
             catch(error){
-                console.error('Erro ao realizar login:', error)
+                console.error('Erro ao realizar login', error)
                 return res.status(500).json({message: 'Erro ao realizar login', erro: error.message})
             }
     }
 }
+    
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function autenticarToken(req,res, next){
+        //Extrair do token o cabeçalho da requisição
+        const token = req.headers['authorization']//Bearer<token>
+        console.log(token);
+        
+    
+        //verificar se o token foi fornecido na requisição
+        if(!token) return res.status(403).json({mensagem: 'Token não fornecido'})
+            
+        //verificar a validade do token
+        //jwt.verify que valida se o token é legitimo
+        jwt.verify(token.split(' ') [1], SECRET_KEY, (err, usuario) =>{
+    
+            if(err) return res.status(403).json({mensagem: 'Token invalido'})
+    
+            //se o token for valido, adiciona os dados do usuario(decodificando no token)
+            //tornando essas informações disponiveis nas rotas que precisam de autorização
+            req.usuario = usuario
+            next();
+        })
+    }
 
 export default rotasUsuarios;
