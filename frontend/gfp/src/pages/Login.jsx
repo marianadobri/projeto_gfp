@@ -8,6 +8,7 @@ function Login () {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const navigate = useNavigate()
+  const [lembrar, setLembrar] = useState (false);
   
   async function botaoEntrar(e) {
     e.preventDefault();
@@ -29,8 +30,9 @@ function Login () {
       )
       if (resposta.ok) {
         const dados = await resposta.json();
+        
+        localStorage.setItem('UsuarioLogado', JSON.stringify({...dados,lembrar}))
         navigate("/principal")
-        localStorage.setItem('UsuarioLogado', JSON.stringify(dados))
       }else {
         throw new Error('Email ou senha incorretos ❌');
       }
@@ -59,6 +61,14 @@ function Login () {
           <div className="input-group">
             <label>Senha</label>
             <input onChange={(e) => setSenha(e.target.value)} value={senha} type="password" placeholder="Digite sua senha" required />
+          </div>
+          <div className={styles.between}>
+            <div style={{display:'flex', alignItems: 'center'}}>
+              <input type='checkbox' style={{marginRight: '5px'}}
+                checked={lembrar} onChange={(e) => setLembrar(e.target.checked)}/>
+              <label>Lembrar-me</label>
+            </div>
+            <a href="#" className={styles.forgotPassword}>Esqueceu a senha?</a>
           </div>
           <button onClick={botaoEntrar} type="submit" className="login-button">Entrar</button>
           <button onClick={botaoLimpar} type="submit" className="login-button">Limpar</button>

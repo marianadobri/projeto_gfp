@@ -131,27 +131,21 @@ static async deletar(req, res) {  //CERTO
 
     //filtrar por tipo categoria
     static async filtrarCategoria (req, res){
-        //o valor sera enviado por parametro na url, deve ser enviado dessa maneira
-        // ?tipo_transacao=entrada
-        const {tipo_transacao} = req.query;
+        const { tipo_transacao } = req.query;
 
         try{
-            const filtros = [];
-            const valores = [];
-
-            if(tipo_transacao){
-                filtros.push(`tipo_transacao = $${valores.length + 1}`);
-                valores.push(tipo_transacao);
-            }
             const query = `
             SELECT * FROM categorias
-            ${filtros.length ? `WHERE ${filtros.join (" AND ")}` : ""}
-            ORDER BY id_categoria DESC
+            WHERE tipo_transacao = $1 AND ativo = true
+            ORDER BY nome DESC
             `
+            const valores = [tipo_transacao]
+            const resposta = await BD.query(query, valores)
+            return res.status(200).json(resposta.rows)
 
-            const resultado = await BD.query(query, valores)
         }catch(error){
-
+            console.error('Erro ao filtrar categoria', error);
+            res.status(500).json({message: "Erro ao filtrar categoria", error: error.message})
         }
     }
 }

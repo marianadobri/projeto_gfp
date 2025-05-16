@@ -4,8 +4,8 @@ import cors from 'cors'
 import rotasUsuarios, {autenticarToken} from './routes/rotasUsuarios.js';
 import rotasCategorias from './routes/rotasCategorias.js';
 import rotasSubCategorias from './routes/rotasSubCategorias.js';
-import rotasLocalTransacoes from './routes/rotasLocalTransacoes.js';
 import rotasTransacoes from './routes/rotasTransacoes.js';
+import rotasContas from './routes/rotasContas.js';
 
 const app = express()
 testarConexao();
@@ -30,11 +30,14 @@ app.patch('/usuarios/:id_usuario', autenticarToken, rotasUsuarios.atualizar) // 
 
 //ROTAS CATEGORIAS - tudo certo  //// autenticar diz que não é fornecido o token
 app.post('/categorias', autenticarToken, rotasCategorias.nova) // foi
-app.get('/categorias', autenticarToken, rotasCategorias.listar) // foi
+app.get('/categorias/filtrarCategoria', rotasCategorias.filtrarCategoria)
+app.get('/categorias/listar', autenticarToken, rotasCategorias.listar) // foi
 app.get('/categorias/:id_categoria', autenticarToken, rotasCategorias.listarPorID) // foi
 app.patch('/categorias/:id_categoria', autenticarToken, rotasCategorias.atualizar) // foi 
 app.put('/categorias/:id_categoria', autenticarToken, rotasCategorias.atualizarTodos) //foi
 app.delete('/categorias/:id_categoria', autenticarToken, rotasCategorias.deletar) // foi
+
+
 
 //Rotas SubCategorias - tudo certo
 app.post('/subcategorias', autenticarToken,rotasSubCategorias.novaSubCategoria) // foi
@@ -45,63 +48,28 @@ app.patch('/subcategorias/:id_subcategoria', autenticarToken, rotasSubCategorias
 app.delete('/subcategorias/:id_subcategoria', autenticarToken, rotasSubCategorias.deletarSubCategoria) // foi
 
 
-
-
-
-
-
-
-
-
-
-
-//Rotas Local Transações 
-app.post('/localTransacoes', rotasLocalTransacoes.novaLocalTransacoes) // certo
-app.get('/localTransacoes', rotasLocalTransacoes.listarTransacoes) // certo
-app.get('/localTransacoes/:id_local_transacao', rotasLocalTransacoes.listarLocalTransacaoPorID)  // foi
-app.patch('/localTransacoes/:id_local_transacao', rotasLocalTransacoes.atualizarLocalTransacoes) // foi
-app.put('/localTransacoes/:id_local_transacao', rotasLocalTransacoes.atualizarTodosLocalTransacoes) 
-app.delete('/localTransacoes/:id_local_transacao', rotasLocalTransacoes.deletarTransacoes)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//Rotas contas - tudo certo
+app.post('/contas', rotasContas.novaConta) // certo
+app.get('/contas/filtrarCategoria', rotasContas.filtrarNome)
+app.get('/contas', autenticarToken, rotasContas.listarContas) // certo
+app.get('/contas/:id_conta', autenticarToken, rotasContas.listarContaPorID)  // foi
+app.patch('/contas/:id_conta', autenticarToken, rotasContas.atualizarContas) // foi
+app.put('/contas/:id_conta', autenticarToken, rotasContas.atualizarTodasContas) 
+app.delete('/contas/:id_conta', autenticarToken, rotasContas.deletarConta)
 
 
 
 
 //Rotas Transações 
-app.post('/transacoes', rotasTransacoes.novaTransacoes)
-app.get('/transacoes', rotasTransacoes.listarTransacoes)
-app.get('/transacoes/:id_transacao', rotasTransacoes.listarTransacoesPorID)  
-app.patch('/transacoes/:id_transacao', rotasTransacoes.atualizarTransacoes)                
-app.put('/transacoes/:id_transacao', rotasTransacoes.atualizarTodosTransacoes)
-app.delete('/transacoes/:id_transacao', rotasTransacoes.deletarTransacoes)
-
+app.post('/transacoes', rotasTransacoes.novaTransacoes) //ok
+app.get('/transacoes/somarTransacoes', rotasTransacoes.somarTransacoes) //ok
+app.get('/transacoes/filtroData', rotasTransacoes.filtrarPorData) //ok
+app.get('/transacoes/transacoesVencidas/:id_usuario', rotasTransacoes.transacoesVencidas) //ok
+app.get('/transacoes', rotasTransacoes.listarTransacoes) //ok
+app.get('/transacoes/:id_transacao', rotasTransacoes.listarTransacoesPorID)  // ok
+app.patch('/transacoes/:id_transacao', rotasTransacoes.atualizarTransacoes)   // ok             
+app.put('/transacoes/:id_transacao', rotasTransacoes.atualizarTodosTransacoes) //ok
+app.delete('/transacoes/:id_transacao', rotasTransacoes.deletarTransacoes) //ok
 
 
 
